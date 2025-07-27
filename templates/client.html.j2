@@ -24,6 +24,20 @@
         debug: 3
     });
 
+    var video_constraints = {
+        video: {
+            mandatory: {
+                maxWidth: 640,
+                maxHeight: 360,
+                // maxAspectRatio:4/3,
+                // maxFrameRate:1
+                },
+            quality: 7,
+            width: { ideal: 320 },
+            height: { ideal: 240 }
+        }
+    };
+
     async function getMedia(constraints) {
         let stream = null;
 
@@ -69,7 +83,7 @@
         });
 
         window.media = await getMedia({
-            video: true,
+            video: video_constraints,
             audio: true
         });
         window.call = peer.call(peerId, window.media);

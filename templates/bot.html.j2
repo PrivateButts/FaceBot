@@ -18,6 +18,21 @@
 {% block scripts %}
 <script src="/static/js/peerjs.min.js"></script>
 <script>
+
+    var video_constraints = {
+        video: {
+            mandatory: {
+                maxWidth: 640,
+                maxHeight: 360,
+                // maxAspectRatio:4/3,
+                // maxFrameRate:1
+                },
+            quality: 7,
+            width: { ideal: 320 },
+            height: { ideal: 240 }
+        }
+    };
+
     window.botName = "{{ bot_name }}";
 
     window.peer = new Peer({
@@ -65,7 +80,7 @@
             peer.on('call', async function (call) {
 
                 window.media = await getMedia({
-                    video: true,
+                    video: video_constraints,
                     audio: true
                 });
                 call.answer(window.media);
