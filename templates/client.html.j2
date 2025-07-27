@@ -1,0 +1,86 @@
+{% extends "base.html.j2" %}
+
+{% block content %}
+
+<div class="container mx-auto p-4">
+    <h1 class="text-3xl font-bold mb-4">FaceBot - Client Interface</h1>
+    <p class="mb-4">Client Name: <strong>{{ bot_name }}</strong></p>
+    <div class="mb-4">
+        <video id="webcam" autoplay playsinline class="w-full h-auto rounded-lg shadow-lg">
+            <p>This will be replaced with the incoming webcam feed</p>
+        </video>
+    </div>
+</div>
+
+{% endblock content %}
+
+
+{% block scripts %}
+<script src="/static/js/peerjs.min.js"></script>
+<script>
+    window.botName = "{{ bot_name }}";
+
+    window.peer = new Peer({
+        debug: 3
+    });
+
+    async function getMedia(constraints) {
+        let stream = null;
+
+        try {
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
+            return stream
+        } catch (err) {
+            console.error('Error accessing media devices.', err);
+            throw err;
+        }
+    }
+
+    peer.on('open', function (id) {
+        fetch(`/api/bot/${window.botName}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        }).then(data => {
+            console.log('Bot info:', data);
+            window.botInfo = data.bot;
+            connect(window.botInfo.peer_id);
+        }).catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
+    });
+
+    async function connect(peerId) {
+        window.connection = peer.connect(peerId);
+        window.connection.on('open', function () {
+            // Receive messages
+            window.connection.on('data', function (data) {
+                console.log('Received', data);
+            });
+
+            // Send messages
+            window.connection.send('Hello!');
+        });
+
+        window.media = await getMedia({
+            video: true,
+            audio: true
+        });
+        window.call = peer.call(peerId, window.media);
+        window.call.on('stream', function (stream) {
+            const video = document.getElementById('webcam');
+            video.srcObject = stream;
+            video.onloadedmetadata = function () {
+                video.play();
+            };
+        });
+    }
+</script>
+
+{% endblock scripts %}
