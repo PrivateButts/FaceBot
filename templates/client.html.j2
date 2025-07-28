@@ -122,25 +122,57 @@
         });
     }
 
+    // Sync sliders with JS state after backend update
+    function syncSliders() {
+        document.querySelector('#pan-slider').value = window.tiltPanData.pan;
+        document.querySelector('#tilt-slider').value = window.tiltPanData.tilt;
+    }
+
+    // Global debounce for pan/tilt requests
+    let panTiltDebounceTimer = null;
+    function requestPanTilt() {
+        if (panTiltDebounceTimer) clearTimeout(panTiltDebounceTimer);
+        panTiltDebounceTimer = setTimeout(() => {
+            sendPanTilt();
+        }, 200); // 200ms debounce
+    }
+
+    document.querySelector('#pan-slider').addEventListener('input', function() {
+        window.tiltPanData.pan = parseInt(this.value, 10);
+        requestPanTilt();
+    });
+    document.querySelector('#tilt-slider').addEventListener('input', function() {
+        window.tiltPanData.tilt = parseInt(this.value, 10);
+        requestPanTilt();
+    });
+
     function decPan() {
         window.tiltPanData.pan = Math.max(0, window.tiltPanData.pan - window.move_scale);
-        sendPanTilt();
+        syncSliders();
+        requestPanTilt();
     }
 
     function incPan() {
         window.tiltPanData.pan = Math.min(180, window.tiltPanData.pan + window.move_scale);
-        sendPanTilt();
+        syncSliders();
+        requestPanTilt();
     }
 
     function decTilt() {
         window.tiltPanData.tilt = Math.max(15, window.tiltPanData.tilt - window.move_scale);
-        sendPanTilt();
+        syncSliders();
+        requestPanTilt();
     }
 
     function incTilt() {
         window.tiltPanData.tilt = Math.min(145, window.tiltPanData.tilt + window.move_scale);
-        sendPanTilt();
+        syncSliders();
+        requestPanTilt();
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        syncSliders();
+    });
 
     function sendPanTilt() {
         fetch(`/api/bot/${window.botName}/look`, {
@@ -159,8 +191,7 @@
             return response.json();
         }).then(data => {
             console.log('Pan/Tilt updated:', data);
-            document.querySelector('#pan-slider').value = window.tiltPanData.pan;
-            document.querySelector('#tilt-slider').value = window.tiltPanData.tilt;
+            syncSliders();
         }).catch(error => {
             console.error('Error sending pan/tilt:', error);
         });
