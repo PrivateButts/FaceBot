@@ -21,7 +21,7 @@ proxy:
     tailscale serve --https 8001 http://localhost:8000
 
 kiosk:
-    export DISPLAY=:0 && chromium --disable-notifications --disable-session-crashed-bubble --disable-infobars --disable-translate --kiosk 'https://facebot.dachshund-lizard.ts.net:8001/bot/asdf'
+    export XDG_SESSION_TYPE=wayland && chromium --disable-notifications --disable-session-crashed-bubble --disable-translate --kiosk 'https://facebot.dachshund-lizard.ts.net:8001/bot/asdf'
 
 
 gen:

@@ -8,13 +8,15 @@ from fastapi.templating import Jinja2Templates
 from servo_controller import get_servo_controller, cleanup_servo_controller
 import logging
 import atexit
+import os
 
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Initialize servo controller on startup
-servo_controller = get_servo_controller(simulate=True)  # Set to False for real hardware
+simulate = os.getenv("SIMULATE_SERVO", "true").lower() == "true"
+servo_controller = get_servo_controller(simulate=simulate)
 
 # Register cleanup function
 atexit.register(cleanup_servo_controller)
