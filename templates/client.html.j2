@@ -23,10 +23,11 @@
                 <input id="pan-slider" type="range" min="0" max="180" x-model="pan" class="mx-2" onchange="sendPanTilt()">
                 <button id="pan-right" class="btn btn-primary" onclick="incPan()">Pan Right</button>
             </div>
+            <button id="reset-pan-tilt" class="btn btn-secondary" onclick="resetPanTilt()">Reset Pan/Tilt</button>
             <div class="flex gap-2 items-center">
-                <button id="tilt-up" class="btn btn-primary" onclick="decTilt()">Tilt Up</button>
+                <button id="tilt-up" class="btn btn-primary" onclick="decTilt()">Tilt Down</button>
                 <input id="tilt-slider" type="range" min="15" max="145" x-model="tilt" class="mx-2" onchange="sendPanTilt()">
-                <button id="tilt-down" class="btn btn-primary" onclick="incTilt()">Tilt Down</button>
+                <button id="tilt-down" class="btn btn-primary" onclick="incTilt()">Tilt Up</button>
             </div>
         </div>
     </div>
@@ -173,6 +174,13 @@
     document.addEventListener('DOMContentLoaded', function() {
         syncSliders();
     });
+
+    resetPanTilt = function() {
+        window.tiltPanData.pan = 90;
+        window.tiltPanData.tilt = 90;
+        syncSliders();
+        sendPanTilt();
+    };
 
     function sendPanTilt() {
         fetch(`/api/bot/${window.botName}/look`, {
