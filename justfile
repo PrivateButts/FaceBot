@@ -31,3 +31,10 @@ gen:
         -o ./gen/js
     cd ./gen/js && npm install && npm run build
     cp -r ./gen/js/dist/* ./static/js/api/
+
+
+display-on:
+    wlr-randr --output DSI-1 --on
+
+display-off:
+    wlr-randr --output DSI-1 --off
