@@ -9,6 +9,10 @@ from servo_controller import get_servo_controller, cleanup_servo_controller
 import logging
 import atexit
 import os
+import dotenv
+
+# Load environment variables from .env file
+dotenv.load_dotenv()
 
 
 app = FastAPI()

@@ -86,6 +86,7 @@ dependencies = [
     { name = "jinja2" },
     { name = "openapi-generator-cli" },
     { name = "pytest" },
+    { name = "python-dotenv" },
     { name = "smbus2" },
 ]
 
@@ -96,6 +97,7 @@ requires-dist = [
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "openapi-generator-cli", specifier = ">=7.14.0" },
     { name = "pytest", specifier = ">=8.4.1" },
+    { name = "python-dotenv", specifier = ">=1.1.1" },
     { name = "smbus2", specifier = ">=0.4.2" },
 ]
 
