@@ -15,7 +15,7 @@ dev:
 serve:
     just dev & \
     just proxy & \
-    just kiosk
+    sleep 5 && just kiosk
 
 proxy:
     tailscale serve --https 8001 http://localhost:8000

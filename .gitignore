@@ -13,3 +13,5 @@ wheels/
 static/js/api/*
 !static/js/api/empty
 gen/
+
+.env
