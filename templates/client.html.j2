@@ -1,5 +1,9 @@
 {% extends "base.html.j2" %}
 
+{% block extrahead %}
+
+{% endblock extrahead %}
+
 {% block content %}
 
 <div class="container mx-auto p-4">
@@ -9,6 +13,22 @@
         <video id="webcam" autoplay playsinline class="w-full h-auto rounded-lg shadow-lg">
             <p>This will be replaced with the incoming webcam feed</p>
         </video>
+    </div>
+    <div id="controlPanel" class="mb-4">
+        <h2 class="text-xl font-semibold mb-2">Camera Pan/Tilt Control</h2>
+
+        <div class="flex flex-col gap-2">
+            <div class="flex gap-2 items-center">
+                <button id="pan-left" class="btn btn-primary" onclick="decPan()">Pan Left</button>
+                <input id="pan-slider" type="range" min="0" max="180" x-model="pan" class="mx-2" onchange="sendPanTilt()">
+                <button id="pan-right" class="btn btn-primary" onclick="incPan()">Pan Right</button>
+            </div>
+            <div class="flex gap-2 items-center">
+                <button id="tilt-up" class="btn btn-primary" onclick="decTilt()">Tilt Up</button>
+                <input id="tilt-slider" type="range" min="15" max="145" x-model="tilt" class="mx-2" onchange="sendPanTilt()">
+                <button id="tilt-down" class="btn btn-primary" onclick="incTilt()">Tilt Down</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -23,6 +43,12 @@
     window.peer = new Peer({
         debug: 3
     });
+
+    window.move_scale = 10;
+    window.tiltPanData = {
+        pan: 90,
+        tilt: 90
+    };
 
     var video_constraints = {
         video: {
@@ -93,6 +119,50 @@
             video.onloadedmetadata = function () {
                 video.play();
             };
+        });
+    }
+
+    function decPan() {
+        window.tiltPanData.pan = Math.max(0, window.tiltPanData.pan - window.move_scale);
+        sendPanTilt();
+    }
+
+    function incPan() {
+        window.tiltPanData.pan = Math.min(180, window.tiltPanData.pan + window.move_scale);
+        sendPanTilt();
+    }
+
+    function decTilt() {
+        window.tiltPanData.tilt = Math.max(15, window.tiltPanData.tilt - window.move_scale);
+        sendPanTilt();
+    }
+
+    function incTilt() {
+        window.tiltPanData.tilt = Math.min(145, window.tiltPanData.tilt + window.move_scale);
+        sendPanTilt();
+    }
+
+    function sendPanTilt() {
+        fetch(`/api/bot/${window.botName}/look`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                pan: window.tiltPanData.pan,
+                tilt: window.tiltPanData.tilt
+            })
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to send pan/tilt');
+            }
+            return response.json();
+        }).then(data => {
+            console.log('Pan/Tilt updated:', data);
+            document.querySelector('#pan-slider').value = window.tiltPanData.pan;
+            document.querySelector('#tilt-slider').value = window.tiltPanData.tilt;
+        }).catch(error => {
+            console.error('Error sending pan/tilt:', error);
         });
     }
 </script>

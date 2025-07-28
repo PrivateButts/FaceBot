@@ -78,6 +78,25 @@ def update_bot(name: str, request: Request, bot: Bot):
     return {"result": "okay", "bot": bot}
 
 
+class PanTilt(BaseModel):
+    pan: float
+    tilt: float
+
+
+@app.post("/api/bot/{name}/look")
+def look_bot(name: str, request: Request, pan_tilt: PanTilt):
+    """
+    Rotate the bot's camera servos to look at a specific direction
+    """
+    if name not in BOTS:
+        raise HTTPException(status_code=404, detail="Bot not found")
+
+    servo_controller.set_pan(round(pan_tilt.pan))
+    servo_controller.set_tilt(round(pan_tilt.tilt))
+
+    return {"result": "okay", "message": f"Bot {name} moved successfully"}
+
+
 # Servo Control Models
 class ServoPosition(BaseModel):
     pan: Optional[int] = None
@@ -111,17 +130,15 @@ def set_servo_position(position: ServoPosition):
     """
     try:
         success = servo_controller.move_to_position(
-            pan=position.pan,
-            tilt=position.tilt,
-            smooth=position.smooth
+            pan=position.pan, tilt=position.tilt, smooth=position.smooth
         )
-        
+
         if success:
             current_position = servo_controller.get_position()
             return {"result": "okay", "position": current_position}
         else:
             raise HTTPException(status_code=400, detail="Failed to move servos")
-    
+
     except Exception as e:
         logging.error(f"Failed to set servo position: {e}")
         raise HTTPException(status_code=500, detail="Failed to set servo position")
@@ -135,7 +152,7 @@ def move_servo(movement: ServoMovement):
     try:
         success = False
         direction = movement.direction.lower()
-        
+
         if direction == "left":
             success = servo_controller.pan_left(movement.step)
         elif direction == "right":
@@ -145,14 +162,16 @@ def move_servo(movement: ServoMovement):
         elif direction == "down":
             success = servo_controller.tilt_down(movement.step)
         else:
-            raise HTTPException(status_code=400, detail="Invalid direction. Use: left, right, up, down")
-        
+            raise HTTPException(
+                status_code=400, detail="Invalid direction. Use: left, right, up, down"
+            )
+
         if success:
             current_position = servo_controller.get_position()
             return {"result": "okay", "position": current_position}
         else:
             raise HTTPException(status_code=400, detail="Failed to move servo")
-    
+
     except HTTPException:
         raise
     except Exception as e:
@@ -185,14 +204,14 @@ def get_servo_limits():
             "pan": {
                 "min": servo_controller.config.SERVO_DOWN_MIN,
                 "max": servo_controller.config.SERVO_DOWN_MAX,
-                "channel": servo_controller.config.SERVO_DOWN_CH
+                "channel": servo_controller.config.SERVO_DOWN_CH,
             },
             "tilt": {
                 "min": servo_controller.config.SERVO_UP_MIN,
                 "max": servo_controller.config.SERVO_UP_MAX,
-                "channel": servo_controller.config.SERVO_UP_CH
+                "channel": servo_controller.config.SERVO_UP_CH,
             },
             "step_size": servo_controller.config.STEP,
-            "step_delay": servo_controller.config.STEP_DELAY
-        }
+            "step_delay": servo_controller.config.STEP_DELAY,
+        },
     }
