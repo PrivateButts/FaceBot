@@ -30,6 +30,8 @@ atexit.register(cleanup_servo_controller)
 
 templates = Jinja2Templates(directory="templates")
 
+PEER_ID = None
+
 
 @app.get("/")
 def read_root(request: Request):
@@ -41,7 +43,7 @@ def read_bot(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="bot.html.j2",
-        context={"bot_name": "FaceBot"},
+        context={"peer_id": PEER_ID},
     )
 
 
@@ -50,8 +52,38 @@ def read_client(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="client.html.j2",
-        context={"bot_name": "FaceBot"},
     )
+
+
+class PeerID(BaseModel):
+    peer_id: str
+
+
+@app.get("/api/bot")
+def get_bot():
+    """
+    Get the current Peer ID of the bot
+    """
+    if PEER_ID is None:
+        raise HTTPException(status_code=404, detail="Bot not registered")
+
+    return {"result": "okay", "peer_id": PEER_ID}
+
+
+@app.put("/api/bot")
+def register_bot(peer_id: PeerID):
+    """
+    Register a bot with the server using its Peer ID
+    """
+    try:
+        # Here you would typically store the peer_id in a database or in-memory store
+        logging.info(f"Bot registered with Peer ID: {peer_id.peer_id}")
+        global PEER_ID
+        PEER_ID = peer_id.peer_id
+        return {"result": "okay", "message": "Bot registered successfully"}
+    except Exception as e:
+        logging.error(f"Failed to register bot: {e}")
+        raise HTTPException(status_code=500, detail="Failed to register bot")
 
 
 class PanTilt(BaseModel):

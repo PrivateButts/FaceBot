@@ -6,7 +6,7 @@
         <h1 class="text-3xl font-bold mb-4">FaceBot</h1>
         <p class="text-xl">Waiting for connection...</p>
     </div>
-    <video id="webcam" autoplay playsinline class="w-full h-full object-cover hidden" style="height: 100vh; width: 100vw;"></video>
+    <video id="webcam" autoplay playsinline class="absolute inset-0 w-full h-full object-cover hidden" style="object-fit: cover; height: 100vh; width: 100vw;"></video>
 </div>
 {% endblock content %}
 
@@ -25,7 +25,6 @@
         }
     };
 
-    window.botName = "FaceBot";
     window.peer = new Peer({ debug: 3 });
 
     async function getMedia(constraints) {
@@ -40,12 +39,12 @@
     }
 
     peer.on('open', function (id) {
-        fetch(`/api/bot/${window.botName}`, {
+        fetch(`/api/bot`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ peer_id: id, name: window.botName })
+            body: JSON.stringify({ peer_id: id })
         }).then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok');

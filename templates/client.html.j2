@@ -84,7 +84,7 @@
     }
 
     peer.on('open', function (id) {
-        fetch(`/api/look`, {
+        fetch(`/api/bot`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -96,8 +96,7 @@
             return response.json();
         }).then(data => {
             console.log('Bot info:', data);
-            window.botInfo = data.bot;
-            connect(window.botInfo.peer_id);
+            connect(data.peer_id);
         }).catch(error => {
             console.error('There was a problem with the fetch operation:', error);
         });
