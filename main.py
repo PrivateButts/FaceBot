@@ -1,9 +1,11 @@
-from typing import Union, Optional
+from typing import Optional
 from pydantic import BaseModel
 
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import JSONResponse
+import subprocess
 
 from servo_controller import get_servo_controller, cleanup_servo_controller
 import logging
@@ -34,54 +36,22 @@ def read_root(request: Request):
     return templates.TemplateResponse(request=request, name="index.html.j2")
 
 
-@app.get("/bot/{name}")
+@app.get("/bot")
 def read_bot(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="bot.html.j2",
-        context={"bot_name": request.path_params["name"]},
+        context={"bot_name": "FaceBot"},
     )
 
 
-@app.get("/client/{name}")
+@app.get("/client")
 def read_client(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="client.html.j2",
-        context={"bot_name": request.path_params["name"]},
+        context={"bot_name": "FaceBot"},
     )
-
-
-class Bot(BaseModel):
-    name: str
-    peer_id: str
-
-
-BOTS: dict[str, Bot] = {}
-
-
-@app.get("/api/bot/{name}")
-def get_bot(name: str, request: Request):
-    """
-    Get the bot by name
-    """
-    if name in BOTS:
-        return {"result": "okay", "bot": BOTS[name]}
-    else:
-        return {"result": "not found", "bot": None}
-
-
-@app.put("/api/bot/{name}")
-def update_bot(name: str, request: Request, bot: Bot):
-    """
-    Update the bot
-    """
-    if name in BOTS:
-        BOTS[name] = bot
-    else:
-        BOTS[name] = bot
-    print(f"Updated bot: {name} with peer_id: {bot.peer_id}")
-    return {"result": "okay", "bot": bot}
 
 
 class PanTilt(BaseModel):
@@ -89,18 +59,15 @@ class PanTilt(BaseModel):
     tilt: float
 
 
-@app.post("/api/bot/{name}/look")
-def look_bot(name: str, request: Request, pan_tilt: PanTilt):
+@app.post("/api/look")
+def look_bot(pan_tilt: PanTilt):
     """
     Rotate the bot's camera servos to look at a specific direction
     """
-    if name not in BOTS:
-        raise HTTPException(status_code=404, detail="Bot not found")
-
     servo_controller.set_pan(round(pan_tilt.pan))
     servo_controller.set_tilt(round(pan_tilt.tilt))
 
-    return {"result": "okay", "message": f"Bot {name} moved successfully"}
+    return {"result": "okay", "message": "Bot moved successfully"}
 
 
 # Servo Control Models
@@ -221,3 +188,29 @@ def get_servo_limits():
             "step_delay": servo_controller.config.STEP_DELAY,
         },
     }
+
+
+@app.post("/api/display/off")
+def display_off():
+    """
+    Turn off the display using wlr-randr
+    """
+    try:
+        subprocess.run(["wlr-randr", "--output", "DSI-1", "--off"], check=True)
+        return JSONResponse({"result": "okay", "message": "Display turned off"})
+    except Exception as e:
+        logging.error(f"Failed to turn off display: {e}")
+        return JSONResponse({"result": "error", "message": str(e)}, status_code=500)
+
+
+@app.post("/api/display/on")
+def display_on():
+    """
+    Turn on the display using wlr-randr
+    """
+    try:
+        subprocess.run(["wlr-randr", "--output", "DSI-1", "--on"], check=True)
+        return JSONResponse({"result": "okay", "message": "Display turned on"})
+    except Exception as e:
+        logging.error(f"Failed to turn on display: {e}")
+        return JSONResponse({"result": "error", "message": str(e)}, status_code=500)
