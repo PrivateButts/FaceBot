@@ -1,5 +1,7 @@
 @import "tailwindcss";
 @source "./static/*.{html,php,erb}";
+@source "./templates/*.";
+@source ".*";
 @plugin "./js/daisyui.js";
 
 /* Optional for custom themes – Docs: https://daisyui.com/docs/themes/#how-to-add-a-new-custom-theme */

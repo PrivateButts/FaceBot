@@ -7,7 +7,13 @@ default:
 # Get the tw cli from https://github.com/tailwindlabs/tailwindcss/releases/tag/v4.1.11
 setup:
     uv sync
+    just css
+
+css:
     tailwindcss -i ./static/index.css -o ./static/index.built.css
+
+css-watch:
+    tailwindcss -i ./static/index.css -o ./static/index.built.css --watch
 
 dev:
     uv run fastapi dev --host 0.0.0.0 main.py
